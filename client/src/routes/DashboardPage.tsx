@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StatsGrid } from '../components/StatsGrid'
 import { InventoryTable } from '../components/InventoryTable'
@@ -6,9 +6,21 @@ import { useProducts } from '../data/ProductsContext'
 import { formatMoney } from '../utils/format'
 import { getStatus, totalValue } from '../utils/inventory'
 
+type FilterId = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock' | 'high-value'
+
 export function DashboardPage() {
   const { products, loading, error, refresh } = useProducts()
   const navigate = useNavigate()
+  const [filter, setFilter] = useState<FilterId>('all')
+
+  const visible = useMemo(() => {
+    return products.filter((p) => {
+      const status = getStatus(p)
+      if (filter === 'all') return true
+      if (filter === 'high-value') return totalValue(p) >= 1000
+      return status === filter
+    })
+  }, [products, filter])
 
   const computed = useMemo(() => {
     const totalSkus = products.length
@@ -48,10 +60,10 @@ export function DashboardPage() {
       />
 
       <InventoryTable
-        products={products}
+        products={visible}
         loading={loading}
-        filter="all"
-        onFilterChange={() => {}}
+        filter={filter}
+        onFilterChange={setFilter}
         onAdd={() => navigate('/inventory')}
         onRestock={() => navigate('/inventory')}
       />

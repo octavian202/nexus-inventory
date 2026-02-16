@@ -49,6 +49,10 @@ public class StockMovement {
     @Column(length = 255)
     private String note;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "performed_by_id")
+    private User performedBy;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

@@ -61,10 +61,6 @@ export function InventoryTable({
       <div className="section-header">
         <h2 className="section-title">Current Inventory</h2>
         <div className="section-actions">
-          <button className="btn btn-secondary" onClick={() => {}} disabled title="Coming soon">
-            <span>📥</span>
-            <span>Import</span>
-          </button>
           <button className="btn btn-primary" onClick={onAdd}>
             <span>➕</span>
             <span>Add Item</span>
@@ -116,7 +112,7 @@ export function InventoryTable({
                 <td colSpan={7}>
                   <div className="empty-state">
                     <div className="empty-title">No products found</div>
-                    <div className="empty-subtitle">Try changing filters, search, or add your first item.</div>
+                    <div className="empty-subtitle">Try changing filters or add your first item.</div>
                   </div>
                 </td>
               </tr>

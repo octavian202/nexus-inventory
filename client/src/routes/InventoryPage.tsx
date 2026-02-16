@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { InventoryTable } from '../components/InventoryTable'
 import { ProductFormModal } from '../components/ProductFormModal'
 import { ProductDetailsModal } from '../components/ProductDetailsModal'
@@ -7,14 +6,13 @@ import { StockAdjustModal } from '../components/StockAdjustModal'
 import { createProduct, updateStock } from '../api/products'
 import type { Product, ProductCreate } from '../api/types'
 import { useProducts } from '../data/ProductsContext'
+import { useAuditLogs } from '../data/AuditLogsContext'
 import { getStatus, totalValue } from '../utils/inventory'
 
 type FilterId = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock' | 'high-value'
-type LayoutContext = { search: string; business: string }
-
 export function InventoryPage() {
-  const { search } = useOutletContext<LayoutContext>()
   const { products, loading, error, refresh } = useProducts()
+  const { refresh: refreshAuditLogs } = useAuditLogs()
 
   const [filter, setFilter] = useState<FilterId>('all')
   const [addOpen, setAddOpen] = useState(false)
@@ -29,28 +27,20 @@ export function InventoryPage() {
   const [actionError, setActionError] = useState<string | null>(null)
 
   const visible = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    const searched = q
-      ? products.filter((p) => {
-          const hay = `${p.name ?? ''} ${p.sku ?? ''} ${p.category ?? ''}`.toLowerCase()
-          return hay.includes(q)
-        })
-      : products
-
-    return searched.filter((p) => {
+    return products.filter((p) => {
       const status = getStatus(p)
       if (filter === 'all') return true
       if (filter === 'high-value') return totalValue(p) >= 1000
       return status === filter
     })
-  }, [products, search, filter])
+  }, [products, filter])
 
   async function onCreateProduct(dto: ProductCreate) {
     setActionError(null)
     try {
       await createProduct(dto)
       setAddOpen(false)
-      await refresh()
+      await Promise.all([refresh(), refreshAuditLogs(50)])
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to create product')
     }
@@ -61,7 +51,7 @@ export function InventoryPage() {
     try {
       await updateStock(productId, adjustment)
       setStockModal({ open: false, product: null })
-      await refresh()
+      await Promise.all([refresh(), refreshAuditLogs(50)])
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to update stock')
     }

@@ -8,6 +8,10 @@ A **full-stack inventory management system** built as a learning project. It dem
 
 Nexus Inventory lets users manage product catalog and stock levels, record receiving and transfers, view dashboards and reports, and manage users—all behind a secure login. The backend is a **Spring Boot 3** REST API; the frontend is a **React 19** single-page application that talks to the API and uses **Supabase** for authentication.
 
+### Screenshot (Dashboard)
+
+![Nexus Inventory Dashboard](image.png)
+
 ---
 
 ## ✨ Highlights (What Makes This Project Stand Out)
@@ -63,7 +67,8 @@ nexus_inventory/
 ## 🔌 API Overview
 
 - **Products** — `GET/POST /api/v1/products`, `GET /api/v1/products/{id}`, `PATCH /api/v1/products/{id}/stock` (with `StockAdjustmentDTO`).
-- **Stock movements** — `POST /api/v1/stock-movements`, `GET /api/v1/stock-movements?limit=50`.
+- **Stock movements** — `POST /api/v1/stock-movements`, `GET /api/v1/stock-movements?limit=50`; each movement records who performed it.
+- **Audit log** — `GET /api/v1/audit-logs?limit=50`; every stock-related action (product created, receiving, transfer, adjustment) is recorded with who did it and what changed.
 - **Users** — `GET /api/v1/users/me` (current user), `GET /api/v1/users` (list); user created/updated on login via Supabase.
 - **Meta** — `GET /api/v1/meta` (app name, server time); public, no auth.
 

@@ -16,6 +16,8 @@ public record StockMovementResponseDTO(
         String fromBusiness,
         String toBusiness,
         String note,
+        UUID performedByUserId,
+        String performedByEmail,
         Instant createdAt
 ) {
 }

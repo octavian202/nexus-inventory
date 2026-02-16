@@ -1,16 +1,25 @@
 import { useMemo } from 'react'
-import { useStockMovements } from '../data/StockMovementsContext'
+import { useAuditLogs } from '../data/AuditLogsContext'
+
+function formatActionType(action: string): string {
+  return action
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 export function AuditsPage() {
-  const { movements, loading, error, refresh } = useStockMovements()
+  const { entries, loading, error, refresh } = useAuditLogs()
 
-  const rows = useMemo(() => movements, [movements])
+  const rows = useMemo(() => entries, [entries])
 
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Audits</h1>
-        <p className="page-subtitle">History of stock changes: receipts, transfers, and adjustments.</p>
+        <h1 className="page-title">Audit log</h1>
+        <p className="page-subtitle">
+          Every stock-related action is recorded with who made the change and what was done.
+        </p>
       </div>
 
       {error ? (
@@ -27,7 +36,7 @@ export function AuditsPage() {
 
       <div className="inventory-section">
         <div className="section-header">
-          <h2 className="section-title">Stock movement log</h2>
+          <h2 className="section-title">All actions</h2>
           <div className="section-actions">
             <button className="btn btn-secondary" onClick={() => void refresh(50)} disabled={loading}>
               Refresh
@@ -40,39 +49,33 @@ export function AuditsPage() {
             <thead>
               <tr>
                 <th>When</th>
-                <th>Type</th>
-                <th>SKU</th>
-                <th>Product</th>
-                <th>Adjustment</th>
-                <th>Result</th>
-                <th>From → To</th>
-                <th>Note</th>
+                <th>Who</th>
+                <th>Action</th>
+                <th>Description</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8}>Loading…</td>
+                  <td colSpan={5}>Loading…</td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={8}>No movements yet.</td>
+                  <td colSpan={5}>No audit entries yet. Create a product or record a stock change to see entries here.</td>
                 </tr>
               ) : (
-                rows.map((m) => (
-                  <tr key={m.id}>
-                    <td>{new Date(m.createdAt).toLocaleString()}</td>
-                    <td style={{ fontWeight: 700 }}>{m.type}</td>
-                    <td>{m.sku}</td>
-                    <td>{m.productName}</td>
-                    <td style={{ fontWeight: 700, color: m.adjustment >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-                      {m.adjustment >= 0 ? `+${m.adjustment}` : m.adjustment}
-                    </td>
-                    <td>{m.resultingStock}</td>
+                rows.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{new Date(entry.createdAt).toLocaleString()}</td>
                     <td>
-                      {(m.fromBusiness ?? '—') + ' → ' + (m.toBusiness ?? '—')}
+                      <span title={entry.userEmail}>
+                        {entry.userDisplayName || entry.userEmail || entry.userId}
+                      </span>
                     </td>
-                    <td>{m.note ?? '—'}</td>
+                    <td style={{ fontWeight: 700 }}>{formatActionType(entry.actionType)}</td>
+                    <td>{entry.description}</td>
+                    <td>{entry.details ?? '—'}</td>
                   </tr>
                 ))
               )}
@@ -83,4 +86,3 @@ export function AuditsPage() {
     </>
   )
 }
-

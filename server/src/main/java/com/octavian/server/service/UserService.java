@@ -18,8 +18,9 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Transactional
-    public UserResponseDTO getOrCreateFromJwt(Jwt jwt) {
+    /** Returns the app User entity for server-side use (e.g. audit log). */
+    @Transactional(readOnly = false)
+    public User getOrCreateUserFromJwt(Jwt jwt) {
         String authUserId = jwt.getSubject();
         String email = jwt.getClaimAsString("email");
         String name = jwt.getClaimAsString("name");
@@ -60,8 +61,13 @@ public class UserService {
                         .lastLoginAt(Instant.now())
                         .build());
 
-        User saved = userRepository.save(user);
-        return toResponseDTO(saved);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public UserResponseDTO getOrCreateFromJwt(Jwt jwt) {
+        User user = getOrCreateUserFromJwt(jwt);
+        return toResponseDTO(user);
     }
 
     @Transactional(readOnly = true)

@@ -4,13 +4,15 @@ import { createStockMovement } from '../api/stockMovements'
 import type { StockMovementType } from '../api/types'
 import { useProducts } from '../data/ProductsContext'
 import { useStockMovements } from '../data/StockMovementsContext'
+import { useAuditLogs } from '../data/AuditLogsContext'
 
-type LayoutContext = { search: string; business: string }
+type LayoutContext = { business: string }
 
 export function ReceivingPage() {
   const { business } = useOutletContext<LayoutContext>()
   const { products, loading: productsLoading, error: productsError, refresh: refreshProducts } = useProducts()
   const { movements, loading: movesLoading, error: movesError, refresh: refreshMoves } = useStockMovements()
+  const { refresh: refreshAuditLogs } = useAuditLogs()
 
   const [productId, setProductId] = useState<string>('')
   const [qty, setQty] = useState<string>('10')
@@ -36,7 +38,7 @@ export function ReceivingPage() {
         note: note.trim() ? note.trim() : null,
       })
       setQty('10')
-      await Promise.all([refreshProducts(), refreshMoves(50)])
+      await Promise.all([refreshProducts(), refreshMoves(50), refreshAuditLogs(50)])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to receive stock')
     } finally {

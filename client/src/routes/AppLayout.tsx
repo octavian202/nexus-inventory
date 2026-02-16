@@ -1,17 +1,17 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Sidebar } from '../components/Sidebar'
 import { TopBar } from '../components/TopBar'
 import { ProductsProvider, useProducts } from '../data/ProductsContext'
 import { MetaProvider } from '../data/MetaContext'
 import { StockMovementsProvider } from '../data/StockMovementsContext'
+import { AuditLogsProvider } from '../data/AuditLogsContext'
 import { getStatus } from '../utils/inventory'
 
 const DEFAULT_BUSINESS = 'retail'
 
 function InnerLayout() {
   const location = useLocation()
-  const [search, setSearch] = useState('')
   const { products } = useProducts()
 
   const alertsCount = useMemo(() => {
@@ -29,9 +29,9 @@ function InnerLayout() {
       />
 
       <main className="main-content">
-        <TopBar search={search} onSearchChange={setSearch} />
+        <TopBar />
         <div className="content">
-          <Outlet context={{ search, business: DEFAULT_BUSINESS }} />
+          <Outlet context={{ business: DEFAULT_BUSINESS }} />
         </div>
       </main>
     </div>
@@ -43,7 +43,9 @@ export function AppLayout() {
     <MetaProvider>
       <ProductsProvider>
         <StockMovementsProvider>
-          <InnerLayout />
+          <AuditLogsProvider>
+            <InnerLayout />
+          </AuditLogsProvider>
         </StockMovementsProvider>
       </ProductsProvider>
     </MetaProvider>

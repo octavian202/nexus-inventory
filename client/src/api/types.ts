@@ -38,6 +38,27 @@ export type StockMovement = {
   fromBusiness: string | null
   toBusiness: string | null
   note: string | null
+  performedByUserId: string | null
+  performedByEmail: string | null
+  createdAt: string
+}
+
+export type AuditActionType =
+  | 'PRODUCT_CREATED'
+  | 'STOCK_RECEIVING'
+  | 'STOCK_TRANSFER'
+  | 'STOCK_ADJUSTMENT'
+
+export type AuditLogEntry = {
+  id: string
+  userId: string
+  userEmail: string
+  userDisplayName: string | null
+  actionType: AuditActionType
+  entityType: string
+  entityId: string | null
+  description: string
+  details: string | null
   createdAt: string
 }
 

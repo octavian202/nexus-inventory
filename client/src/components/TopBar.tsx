@@ -1,13 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
-export function TopBar({
-  search,
-  onSearchChange,
-}: {
-  search: string
-  onSearchChange: (v: string) => void
-}) {
+export function TopBar() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const initials =
@@ -22,16 +16,6 @@ export function TopBar({
 
   return (
     <div className="top-bar">
-      <div className="search-box">
-        <span className="search-icon">🔍</span>
-        <input
-          type="text"
-          className="search-input"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search products, SKU, categories..."
-        />
-      </div>
       <div className="top-actions">
         <div className="user-avatar" title={user?.email ?? 'Signed in user'}>
           {initials.toString().toUpperCase()}

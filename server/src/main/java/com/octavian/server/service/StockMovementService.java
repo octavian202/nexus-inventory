@@ -6,11 +6,13 @@ import com.octavian.server.dto.StockMovementResponseDTO;
 import com.octavian.server.model.Product;
 import com.octavian.server.model.StockMovement;
 import com.octavian.server.model.StockMovementType;
+import com.octavian.server.model.User;
 import com.octavian.server.repository.ProductRepository;
 import com.octavian.server.repository.StockMovementRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,16 +25,19 @@ public class StockMovementService {
 
     private final ProductRepository productRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final UserService userService;
 
     @Transactional
-    public StockMovementResponseDTO createMovement(StockMovementCreateDTO dto) {
+    public StockMovementResponseDTO createMovement(StockMovementCreateDTO dto, Jwt jwt) {
+        User performedBy = jwt != null ? userService.getOrCreateUserFromJwt(jwt) : null;
         return adjustStockWithAuditMovement(
                 dto.productId(),
                 dto.adjustment(),
                 dto.type(),
                 dto.fromBusiness(),
                 dto.toBusiness(),
-                dto.note()
+                dto.note(),
+                performedBy
         );
     }
 
@@ -43,7 +48,8 @@ public class StockMovementService {
             StockMovementType type,
             String fromBusiness,
             String toBusiness,
-            String note
+            String note,
+            User performedBy
     ) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
@@ -68,6 +74,7 @@ public class StockMovementService {
                 .fromBusiness(blankToNull(fromBusiness))
                 .toBusiness(blankToNull(toBusiness))
                 .note(blankToNull(note))
+                .performedBy(performedBy)
                 .build();
 
         StockMovement stored = stockMovementRepository.save(movement);
@@ -82,9 +89,11 @@ public class StockMovementService {
             StockMovementType type,
             String fromBusiness,
             String toBusiness,
-            String note
+            String note,
+            Jwt jwt
     ) {
-        adjustStockWithAuditMovement(productId, adjustment, type, fromBusiness, toBusiness, note);
+        User performedBy = jwt != null ? userService.getOrCreateUserFromJwt(jwt) : null;
+        adjustStockWithAuditMovement(productId, adjustment, type, fromBusiness, toBusiness, note, performedBy);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
         return new ProductResponseDTO(
@@ -118,6 +127,8 @@ public class StockMovementService {
                 m.getFromBusiness(),
                 m.getToBusiness(),
                 m.getNote(),
+                m.getPerformedBy() != null ? m.getPerformedBy().getId() : null,
+                m.getPerformedBy() != null ? m.getPerformedBy().getEmail() : null,
                 m.getCreatedAt()
         );
     }
